@@ -539,3 +539,398 @@ abline(h = stage_mu_hrm_avg_female4, col = 1:length(stage_mu_hrm_avg_female4), l
 #recored and turn off
 fig_hr_max <- recordPlot()
 dev.off()
+
+#####Symptom Modelling#####
+dat_symp <- list(N = length(symp_df$id),
+                 N_stages = length(unique(symp_df$stage)),
+                 N_tasks = length(unique(symp_df$task)),
+                 N_ids = length(unique(symp_df$id)),
+                 id = as.integer(symp_df$id),
+                 sex = as.integer(symp_df$gender),
+                 stage = as.integer(symp_df$stage),
+                 task = as.integer(symp_df$task),
+                 sx = mod_z(symp_df$sx_severity))
+
+#check
+str(dat_symp)
+
+#prior symptoms data
+dat_symp_prior <- list(N = length(symp_df$id),
+                       N_stages = length(unique(symp_df$stage)),
+                       N_tasks = length(unique(symp_df$task)),
+                       N_ids = length(unique(symp_df$id)),
+                       id = as.integer(symp_df$id),
+                       sex = as.integer(symp_df$gender),
+                       stage = as.integer(symp_df$stage),
+                       task = as.integer(symp_df$task),
+                       sx = mod_z(symp_df$sx_severity)*0)
+
+#check
+str(dat_symp_prior)
+
+##Symptoms##
+
+##Symptoms##
+
+##Compile models
+mod_sx_pp_tsk_sex_nested <- stan_model("sx_pp_task_sex_nested.stan")
+
+#prior model
+mod_prior_sx_pp_tsk_sex_nested <- stan_model("sx_pp_task_sex_nested_prior.stan")
+
+##Run models
+m_sx_pp_tsk_sex_nested <- sampling(mod_sx_pp_tsk_sex_nested,
+                                   dat_symp,
+                                   chains = 4, iter = 3000)
+saveRDS(m_sx_pp_tsk_sex_nested, "m_sx_pp_tsk_sex_nested.rds")
+m_sx_pp_tsk_sex_nested <- readRDS("m_sx_pp_tsk_sex_nested.rds")
+
+#prior model of above
+m_prior_sx_pp_tsk_sex_nested <- sampling(mod_prior_sx_pp_tsk_sex_nested,
+                                         dat_symp_prior,chains = 4, iter = 3000)
+saveRDS(m_prior_sx_pp_tsk_sex_nested, "m_prior_sx_pp_tsk_sex_nested.rds")
+m_prior_sx_pp_tsk_sex_nested <- readRDS("m_prior_sx_pp_tsk_sex_nested.rds")
+
+#Evaluate with loo
+loo_sx_pp_tsk_sex_nested <- loo(m_sx_pp_tsk_sex_nested)
+
+#########Posterior Predictive Checks#########
+#first extract the data from the pooled model
+post_sx <- as.data.frame(extract.samples(m_sx_pp_tsk_sex_nested))
+#vectorize the median of the mu values from post_pp
+post_mu_sx <- post_sx[grepl("mu.", colnames(post_sx))]
+#remove first two columns, the intercepts
+post_mu_sx2 <-
+  post_mu_sx[-c(1, 2)]
+#recover raw values from modified z-scores
+post_mu_sx3 <- post_mu_sx2 * mad(symp_df$sx_severity, na.rm = TRUE) +
+  median(symp_df$sx_severity, na.rm = TRUE)
+#find the mean of post_mu_pp3 columns
+post_mu_sx4 <- apply(post_mu_sx3, 2, median)
+#add this vector to the hr_df
+symp_df$mu_symp <- post_mu_sx4
+
+#locate indices to create an avg stage df
+m_sx_pp_tsk_sex_nested
+precis(post_sx)
+colnames(post_sx)
+#create separate dataframe for stage for the function below
+post_sx_stage <- post_sx[c(79:83)]
+
+#create a function that adds up the correct values for each stage
+#males
+#there is literally no variance at the task level,
+#so we can take the population coefficient for task
+stage_mu_sx_male <-
+  sapply(1:5, function(x) post_sx_stage[x] + post_sx$mu_task +
+           post_sx$b_sex.1)
+#recover values        
+stage_mu_sx_male2 <-
+  lapply(stage_mu_sx_male,
+         function (x) x * mad(symp_df$sx_severity, na.rm = TRUE) +
+           median(symp_df$sx_severity, na.rm = TRUE))
+#average over the list
+stage_mu_sx_male3 <-
+  lapply(stage_mu_sx_male2, median)
+#make into a vector
+stage_mu_sx_male4 <- unlist(stage_mu_sx_male3)
+
+#females
+stage_mu_sx_female <-
+  sapply(1:5, function(x) post_sx_stage[x] + post_sx$mu_task +
+           post_sx$b_sex.2)
+#recover values        
+stage_mu_sx_female2 <-
+  lapply(stage_mu_sx_female,
+         function (x) x * mad(symp_df$sx_severity, na.rm = TRUE) +
+           median(symp_df$sx_severity, na.rm = TRUE))
+#average over the list
+stage_mu_sx_female3 <-
+  lapply(stage_mu_sx_female2, median)      
+#make into a vector
+stage_mu_sx_female4 <- unlist(stage_mu_sx_female3)
+
+#check raw stage level means
+by(symp_df$sx_severity[symp_df$gender==1], symp_df$stage[symp_df$gender==1], mean)
+by(symp_df$sx_severity[symp_df$gender==2], symp_df$stage[symp_df$gender==2], mean)
+
+
+#create plot
+#presave the plot first
+pdf("fig_sx.pdf",width = 12, height = 8, pointsize = 12)
+#create multi panel plot of raw data with overlayed posterior predictions
+par(mfrow = c(1, 2))
+
+#males
+plot(as.numeric(as.factor(symp_df$id[symp_df$gender == 1])),
+     symp_df$sx_severity[symp_df$gender == 1],
+     pch = 16,
+     cex = 3,
+     col = symp_df$stage[symp_df$gender == 1],
+     xlab = "Male Individual",
+     xaxt = "n",
+     ylim = c(0, 16),
+     ylab = "Symptom Severity")
+axis(1, at = 1:6, labels = 1:6)
+#add posterior predictions
+points(as.numeric(as.factor(symp_df$id[symp_df$gender == 1])),
+       symp_df$mu_symp[symp_df$gender == 1],
+       cex = 3,
+       col = symp_df$stage[symp_df$gender == 1])
+#add stage level predictions
+abline(h = stage_mu_sx_male4, col = 1:length(stage_mu_sx_male4), lty = 2)       
+# add legend for stage
+legend("topright", legend = c("pre", "stage 1", "stage 2", "stage 3", "stage 4"), 
+       pch = 16, col = 1:length(levels(as.factor(symp_df$stage[symp_df$gender == 1]))))        
+#females
+plot(as.numeric(as.factor(symp_df$id[symp_df$gender == 2])),
+     symp_df$sx_severity[symp_df$gender == 2],
+     pch = 16,
+     cex = 3,
+     col = symp_df$stage[symp_df$gender == 2],
+     xlab = "Female Individual",
+     ylab = "",
+     ylim = c(0, 16),
+     xaxt = "n")
+axis(1, at = 1:8, labels = 1:8)
+axis(2, labels = FALSE, tick = TRUE)
+#add posterior predictions
+points(as.numeric(as.factor(symp_df$id[symp_df$gender == 2])),
+       symp_df$mu_symp[symp_df$gender == 2],
+       cex = 3,
+       col = symp_df$stage[symp_df$gender == 2],)
+#add stage level predictions
+abline(h = stage_mu_sx_female4, col = 1:length(stage_mu_sx_female4), lty = 2)           
+#recored and turn off
+fig_sx <- recordPlot()
+dev.off()
+
+###Manuscript Figures
+
+#creating a 3 panel posterior density plot for hr avg, hr max and symptoms 
+#by stage, with the partially pooled models that include sex, but are not
+#modelled with a sex interaction. 
+
+#extract posterior samples from the models for hr avg, max and sx.
+
+#hr avg
+#use the stage averages created above for ppc plots
+#male model posterior estimates
+fig_df_m <- data.frame(rbind.data.frame(stage_mu_hr_avg_male2,stage_mu_hrm_avg_male2, 
+                                        stage_mu_sx_male2), rep("Male"),
+                       rep(c("HR Avg (bpm)","HR Max (bpm)","Symp. Severity"),each = 6000))
+#rename
+colnames(fig_df_m) <- c("Pre", "Stage 1", "Stage 2",
+                        "Stage 3", "Stage 4", "Sex", "Variable")
+#female model posterior estimates
+fig_df_f <- data.frame(rbind.data.frame(stage_mu_hr_avg_female2,stage_mu_hrm_avg_female2, 
+                                        stage_mu_sx_female2), rep("Female"),
+                       rep(c("HR Avg (bpm)","HR Max (bpm)","Symp. Severity"),each = 6000))
+#rename
+colnames(fig_df_f) <- colnames(fig_df_m)
+#bind
+fig_df_post <- rbind.data.frame(fig_df_m, fig_df_f)
+
+##pull out the information from the prior models to underlay on the posterior plot
+#hr avg and max
+#extract from prior model
+prior_hr_avg <- as.data.frame(extract.samples(m_prior_hr_pp_part_sex ))
+
+#extract prior stage averages
+colnames(prior_hr_avg)
+prior_hr_avg_stage <- prior_hr_avg[c(24:28)]
+
+#create a function that adds up the correct values for each stage
+#males
+stage_mu_hr_avg_male_prior <-
+  sapply(1:5, function(x) prior_hr_avg_stage[x] + 
+           prior_hr_avg$mu_id + prior_hr_avg$b_sex.1)
+#recover values     
+#male
+stage_mu_hr_avg_male_prior2 <-
+  lapply(stage_mu_hr_avg_male_prior,
+         function (x) x * mad(hr_df$hr, na.rm = TRUE) +
+           median(hr_df$hr, na.rm = TRUE))
+#female
+stage_mu_hr_avg_female_prior <-
+  sapply(1:5, function(x) prior_hr_avg_stage[x] + 
+           prior_hr_avg$mu_id + prior_hr_avg$b_sex.2)
+#recover values        
+stage_mu_hr_avg_female_prior2 <-
+  lapply(stage_mu_hr_avg_female_prior,
+         function (x) x * mad(hr_df$hr, na.rm = TRUE) +
+           median(hr_df$hr, na.rm = TRUE))
+
+#the prior for the hr max model is the same as the hr avg model,
+#just with a different raw value recovery
+#male
+stage_mu_hrm_avg_male_prior2 <-
+  lapply(stage_mu_hr_avg_male_prior,
+         function (x) x * mad(hr_df$max_hr, na.rm = TRUE) +
+           median(hr_df$max_hr, na.rm = TRUE))
+#female
+stage_mu_hrm_avg_female_prior2 <-
+  lapply(stage_mu_hr_avg_female_prior,
+         function (x) x * mad(hr_df$max_hr, na.rm = TRUE) +
+           median(hr_df$max_hr, na.rm = TRUE))
+
+#symptom prior modelling
+prior_sx <- as.data.frame(extract.samples(m_prior_sx_pp_tsk_sex_nested))
+
+#identify stage coefficients
+prior_sx_stage <- prior_sx[c(79:83)]
+
+#create a function that adds up the correct values for each stage
+#males
+#there is literally no variance at the task level,
+#so we can take the population coefficient for task
+stage_mu_sx_male_prior <-
+  sapply(1:5, function(x) prior_sx_stage[x] + prior_sx$mu_task +
+           prior_sx$b_sex.1)
+#recover values        
+stage_mu_sx_male_prior2 <-
+  lapply(stage_mu_sx_male_prior,
+         function (x) x * mad(symp_df$sx_severity, na.rm = TRUE) +
+           median(symp_df$sx_severity, na.rm = TRUE))
+#females
+stage_mu_sx_female_prior <-
+  sapply(1:5, function(x) prior_sx_stage[x] + prior_sx$mu_task +
+           prior_sx$b_sex.2)
+#recover values        
+stage_mu_sx_female_prior2 <-
+  lapply(stage_mu_sx_female_prior,
+         function (x) x * mad(symp_df$sx_severity, na.rm = TRUE) +
+           median(symp_df$sx_severity, na.rm = TRUE))
+
+#create a prior df
+#male model posterior estimates
+prior_df_m <- data.frame(rbind.data.frame(stage_mu_hr_avg_male_prior2,stage_mu_hrm_avg_male_prior2, 
+                                          stage_mu_sx_male_prior2), rep("Male"),
+                         rep(c("HR Avg (bpm)","HR Max (bpm)","Symp. Severity"),each = 6000))
+#rename
+colnames(prior_df_m) <- c("Pre", "Stage 1", "Stage 2",
+                          "Stage 3", "Stage 4", "Sex", "Variable")
+#female model posterior estimates
+prior_df_f <- data.frame(rbind.data.frame(stage_mu_hr_avg_female_prior2,stage_mu_hrm_avg_female_prior2, 
+                                          stage_mu_sx_female_prior2), rep("Female"),
+                         rep(c("HR Avg (bpm)","HR Max (bpm)","Symp. Severity"),each = 6000))
+#rename
+colnames(prior_df_f) <- colnames(prior_df_m)
+#bind
+prior_df <- rbind.data.frame(prior_df_m, prior_df_f) 
+#add model type variable
+prior_df$model <- 'Prior'
+#add this to the posterior fig_df
+fig_df_post$model <- 'Posterior'
+#combine
+fig_df <- rbind.data.frame(prior_df, fig_df_post)
+#make long so stage is another variable
+fig_df_long <- gather(fig_df,key = "Stage",value = "value",-Sex,-Variable,-model)
+
+#Creating a graph with just the posterior estimates (not including priors)
+theme_set(theme_tidybayes() + panel_border())
+fig_hr_avg <- fig_df_long[fig_df_long$Variable=="HR Avg (bpm)"&
+                            fig_df_long$model=='Posterior',] %>%
+  ggplot(aes(y = `Stage`,
+             x = `value`,
+             fill = Sex)) + 
+  #geom_vline(xintercept = 0, alpha = 0.8, linetype = 2) + 
+  theme(title = element_text(face = 'bold'),
+        axis.title.x = element_text(size = 11, face = 'bold'),
+        axis.title.y = element_blank(),
+        axis.text.y = element_text(face = 'bold', size = 10),
+        legend.position = 'None',
+        axis.text.x = element_text(face = 'bold', size = 10)) +
+  scale_fill_manual(values = c('pink','blue'))+
+  stat_halfeye(aes(color = Sex),.width = c(0.70,0.90), 
+               alpha = 0.5,linewidth = 1.5,point_size = 1) +
+  scale_colour_manual(values = c('pink','blue')) + xlim(30, 180)+
+  xlab('HR Avg (bpm)')
+
+fig_hr_max <- fig_df_long[fig_df_long$Variable=="HR Max (bpm)"&
+                            fig_df_long$model=='Posterior',] %>%
+  ggplot(aes(y = `Stage`,
+             x = `value`,
+             fill = Sex)) + 
+  theme(title = element_text(face = 'bold'),
+        axis.title.x = element_text(size = 11, face = 'bold'),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = 'None',
+        axis.text.x = element_text(face = 'bold', size = 10)) +
+  scale_fill_manual(values = c('pink','blue'))+
+  stat_halfeye(aes(color = Sex),.width = c(0.70,0.90), 
+               alpha = 0.5,linewidth = 1.5,point_size = 1) +
+  scale_colour_manual(values = c('pink','blue')) + xlim(60, 200)+
+  xlab('HR Max (bpm)')
+
+fig_symp <- fig_df_long[fig_df_long$Variable=="Symp. Severity"&
+                          fig_df_long$model=='Posterior',] %>%
+  ggplot(aes(y = `Stage`,
+             x = `value`,
+             fill = Sex)) + 
+  theme(title = element_text(face = 'bold'),
+        axis.title.x = element_text(size = 11, face = 'bold'),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.text = element_text(size = 6),
+        legend.title = element_blank(),
+        legend.position = c(0.86,.18),
+        legend.spacing.y = unit(0, "pt"),
+        legend.spacing.x = unit(0, "pt"),
+        legend.box.margin=margin(-0.3,-0.3,-0.3,-0.3),
+        axis.text.x = element_text(face = 'bold', size = 10)) +
+  scale_fill_manual(values = c('pink','blue'))+
+  stat_halfeye(aes(color = Sex),.width = c(0.70,0.90), 
+               alpha = 0.5,linewidth = 1.5,point_size = 1) +
+  scale_colour_manual(values = c('pink','blue')) + xlim(1, 11)+
+  xlab('Symptom Severity Scores')
+
+#combine three figures into a single figure
+fig1 <- plot_grid(fig_hr_avg, fig_hr_max, fig_symp, ncol = 3, align = 'h', 
+                  rel_heights = c(1,1,1), labels = c("A", "B", "C"), label_size = 10,
+                  label_x = c(0.23, 0.03, 0.03),
+                  label_y = c(0.99, 0.99, 0.99))
+ggsave(fig1, file = 'fig1.jpg', dpi = 600, width = 8, height = 4)
+
+#creating male and female dataframes for table of estimates
+male_hr_avg <- as.data.frame(unlist(stage_mu_hr_avg_male2))
+male_hrm_avg <- as.data.frame(unlist(stage_mu_hrm_avg_male2))
+male_symp_avg <- as.data.frame(unlist(stage_mu_sx_male2))
+male_ests <- cbind.data.frame(male_hr_avg,male_hrm_avg,male_symp_avg)
+colnames(male_ests) <- c("HR Avg (BPM)","HR Max (BPM)","Symptom Severity")
+male_ests$stage <- rep(c("Pre","Stage 1","Stage 2", "Stage 3", "Stage 4"), each = 6000)
+
+female_hr_avg <- as.data.frame(unlist(stage_mu_hr_avg_female2))
+female_hrm_avg <- as.data.frame(unlist(stage_mu_hrm_avg_female2))
+female_symp_avg <- as.data.frame(unlist(stage_mu_sx_female2))
+female_ests <- cbind.data.frame(female_hr_avg,female_hrm_avg,female_symp_avg)
+colnames(female_ests) <- c("HR Avg (BPM)","HR Max (BPM)","Symptom Severity")
+female_ests$stage <- rep(c("Pre","Stage 1","Stage 2", "Stage 3", "Stage 4"), each = 6000)
+
+#use fig_df_long and gt_summary to create table
+theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
+tbl_male <- tbl_summary(male_ests, by = stage,
+                        digits = all_continuous() ~1,
+                        statistic = all_continuous()~c("{mean} ({HDILow},{HDIHigh})")) 
+
+tbl_female <- tbl_summary(female_ests, by = stage,
+                          digits = all_continuous() ~1,
+                          statistic = all_continuous()~c("{mean} ({HDILow},{HDIHigh})")) 
+
+#Combine
+tbl_ests <- tbl_stack(list(tbl_male,tbl_female),
+                      group_header = c("Males", "Females")) %>%
+  modify_caption("**Supplementary Table 4.** Posterior estimates")%>%
+  modify_header(label ~ '**Measure**')%>%
+  modify_footnote(all_stat_cols() ~ "Mean (90% Compatibility Interval)")%>%
+  as_gt()%>%
+  tab_source_note(source_note = md('HR = Heart Rate'))%>%
+  gt::gtsave(filename = "sup_t4.html")
+
+#this table was modified slightly for publication to bold the male/female headings
+#as well as remove the "Mean (HDILow,HDIHigh)" from each row header. tbl_stack
+#is great, but lacks some functionality.
+
+
+
