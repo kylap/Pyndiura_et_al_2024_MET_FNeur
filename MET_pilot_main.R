@@ -1196,3 +1196,87 @@ mean(sex_contrasts_df$Pre[sex_contrasts_df$Variable=='Symp. Severity']<0)
 
 
 
+
+
+######Adding in Predicted Max HR Table with Raw Max HR#######
+theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
+max_hr_raw_all <- max_hr_raw[c(3:6)]
+max_hr_raw_females <- max_hr_raw[max_hr_raw$Gender == "Female",c(3:6)]
+max_hr_raw_males <- max_hr_raw[max_hr_raw$Gender == "Male",c(3:6)]
+frml1_all_maxhr <- as.data.frame(apply(max_hr_raw_all,2,function(x) {((x/200)*100)}))
+maxhr_overall_frmla1_tbl <- frml1_all_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                       "Stage 4") %>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**All**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_overall_frmla1_tbl
+
+frml1_f_maxhr <- as.data.frame(apply(max_hr_raw_females,2,function(x) {((x/200)*100)}))
+maxhr_females_frm1_tbl <- frml1_f_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                   "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Females**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_females_frm1_tbl
+
+frml1_m_maxhr <- as.data.frame(apply(max_hr_raw_males,2,function(x) {((x/200)*100)}))
+maxhr_males_frm1_tbl <- frml1_m_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                 "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Males**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_males_frm1_tbl
+
+frml2_all_maxhr <- as.data.frame(apply(max_hr_raw_all,2,function(x) {((x/198.2)*100)}))
+maxhr_overall_frmla2_tbl <- frml2_all_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                       "Stage 4") %>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**All**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_overall_frmla2_tbl
+
+frml2_f_maxhr <- as.data.frame(apply(max_hr_raw_females,2,function(x) {((x/198.2)*100)}))
+maxhr_females_frm2_tbl <- frml2_f_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                   "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Females**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_females_frm2_tbl
+
+frml2_m_maxhr <- as.data.frame(apply(max_hr_raw_males,2,function(x) {((x/198.2)*100)}))
+maxhr_males_frm2_tbl <- frml2_m_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                 "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Males**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+maxhr_males_frm2_tbl
+
+supp_t3_stacked1 <- tbl_merge(list(maxhr_overall_frmla1_tbl,maxhr_females_frm1_tbl,maxhr_males_frm1_tbl), 
+                         tab_spanner=c("**All**","**Females**","**Males**"))
+#supp_t3_stacked2 <- tbl_merge(list(maxhr_overall_frmla2_tbl,maxhr_females_frm2_tbl,maxhr_males_frm2_tbl), 
+ #                        tab_spanner=c("**All**","**Females**","**Males**"))
+#supp_t3_stacked <- tbl_merge(list(supp_t3_stacked1,supp_t3_stacked2),
+ #                       tab_spanner=c("**Formula 1 = 220-age**","**Formula 2 = 211-age*0.64**"))
+supp_t3_stacked1 <- tbl_merge(list(supp_t3_stacked1),
+                             tab_spanner=c("**Formula = 220 - age**"))
+supp_t3_stacked <- supp_t3_stacked1 %>% 
+  modify_caption("**Supplementary Table 3. Participants' percentages of age-predicted maximum HR**") %>%
+  as_gt() 
+supp_t3_stacked <- supp_t3_stacked %>%
+  tab_source_note(md('Data presented as percentages of Median (IQR).')) %>%
+  gt::tab_options(table.font.names = "Times New Roman")%>%
+  gt::gtsave(filename = "supplementary_table3.html")
+
+##IF KEEPING - NEED TO CHANGE NUMBERING IN GITHUB
