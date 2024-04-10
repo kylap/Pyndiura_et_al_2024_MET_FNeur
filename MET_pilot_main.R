@@ -969,7 +969,6 @@ table2 <- raw_met_perf_values[c("Gender","HVLT (sum of three trials /36)","20 Hi
   gt::gtsave(filename = "table2.html")
 
 ##########Supplementary Tables######
-
 #Supplementary Table 1
 colnames(complete_df2)
 ave_hr_raw <- complete_df2[c(24,4,8,10,12,14)]
@@ -991,6 +990,7 @@ sup_table1 <- ave_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4
   as_gt() %>%
   gt::tab_options(table.font.names = "Times New Roman") %>%
   gt::gtsave(filename = "sup_t1.html")
+#The table was slightly modified for publication to remove superscripts.
 
 #Supplementary Table 2
 colnames(complete_df2)
@@ -1013,6 +1013,7 @@ sup_table2 <- max_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4
   as_gt() %>%
   gt::tab_options(table.font.names = "Times New Roman") %>%
   gt::gtsave(filename = "sup_t2.html")
+#The table was slightly modified for publication to remove superscripts.
 
 #Supplementary Table 3
 theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
@@ -1061,6 +1062,7 @@ supp_t3_stacked <- supp_t3_stacked1 %>%
   as_gt() %>%
   gt::tab_options(table.font.names = "Times New Roman")%>%
   gt::gtsave(filename = "sup_t3.html")
+#The table was slightly modified for publication to remove superscripts.
 
 #Supplementary Table 4
 reset_gtsummary_theme()
@@ -1096,14 +1098,13 @@ tbl_ests <- tbl_stack(list(tbl_male,tbl_female),
                       group_header = c("Males", "Females")) %>%
   modify_caption("**Supplementary Table 4.** Posterior estimates")%>%
   modify_header(label ~ '**Measure**')%>%
-  modify_footnote(all_stat_cols() ~ "Data presented as Mean (90% Compatibility Interval) from 6000 posterior draws.")%>%
+  modify_footnote(all_stat_cols() ~ "Data presented as Mean (90% Compatibility Interval) from 6,000 posterior draws.")%>%
   as_gt()%>%
   tab_source_note(source_note = md('HR, Heart Rate; Avg, Average; bpm, beats per minute; Max, Maximum'))%>%
   gt::gtsave(filename = "sup_t4.html")
+#Table was modified slightly for publication to bold the male/female headings and.
+#remove superscripts. tbl_stack is great, but lacks some functionality.
 
-#this table was modified slightly for publication to bold the male/female headings
-#as well as remove the "Mean (HDILow,HDIHigh)" from each row header. tbl_stack
-#is great, but lacks some functionality.
 
 #Supplementary Table 5
 ##Creating a table of contrasts to help interpret the findings in the results.
@@ -1145,7 +1146,8 @@ tbl_contrasts <- tbl_summary(contrasts_df[-c(1)], by = Variable,missing = 'no',
   as_gt()%>%
   tab_source_note(source_note = md('HR, Heart Rate; Avg, Average; bpm, beats per minute; Max, Maximum'))%>%
   gt::gtsave(filename = "sup_t5.html")
-#again, need to modify slightly for publication (See above under tbl_ests)
+#Need to modify slightly for publication to remove superscripts.
+
 
 #Supplementary Table 6
 colnames(data)
@@ -1174,12 +1176,12 @@ sup_table6 <- sx_raw_values[c("Gender","Symptom Severity Score","20 Hip Hinges",
                           "Step Down + Lateral Jump",
                           "Jump-Overs 1","Jump-Overs 2")] %>% 
   tbl_summary(by=Gender,digits=list('Symptom Severity Score' ~ 0,'20 Hip Hinges' ~ 0,
-                                    '20 Lunges' ~ 0, '20 Squats' ~ 0,
-                                    '10 Hip Hinges' ~ 0, '10 Lunges' ~ 0,
-                                    '10 Squats' ~ 0,'20 Hip Hinges + COWAT' ~ 0,
-                                    '20 Lunges + COWAT' ~ 0,'20 Squats + COWAT' ~ 0,
-                                    'Step Down + Lateral Jump' ~ 0,'Jump-Overs 1' ~ 0, 
-                                    'Jump-Overs 2' ~ 0),
+                          '20 Lunges' ~ 0, '20 Squats' ~ 0,
+                          '10 Hip Hinges' ~ 0, '10 Lunges' ~ 0,
+                          '10 Squats' ~ 0,'20 Hip Hinges + COWAT' ~ 0,
+                          '20 Lunges + COWAT' ~ 0,'20 Squats + COWAT' ~ 0,
+                           'Step Down + Lateral Jump' ~ 0,'Jump-Overs 1' ~ 0, 
+                           'Jump-Overs 2' ~ 0),
               type = list('Symptom Severity Score' ~ "continuous",'20 Hip Hinges' ~ "continuous",
                           '20 Lunges' ~ "continuous", '20 Squats' ~ "continuous",
                           '10 Hip Hinges' ~ "continuous", '10 Lunges' ~ "continuous",
@@ -1215,6 +1217,7 @@ sup_table6 <- sx_raw_values[c("Gender","Symptom Severity Score","20 Hip Hinges",
   gt::tab_options(table.font.names = "Times New Roman")%>%
   tab_source_note(source_note = md('MET, Multimodal Exertional Test; COWAT, Controlled Oral Word Association Task'))%>%
   gt::gtsave(filename = "sup_t6.html")
+#Table was slightly modified for publication to remove superscripts.
 
 ######For Results####
 #for results, produce the pprob > 0 for each contrast
