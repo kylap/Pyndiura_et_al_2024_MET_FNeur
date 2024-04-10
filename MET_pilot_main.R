@@ -11,9 +11,9 @@ library(gtsummary)
 library(gt)
 library(dagitty)
 library(rethinking)
-library(readRDS)
 library(tidybayes)
 library(cowplot)
+library(readRDS)
 
 #loading workspace when re-opening
 load("met_pilot_workspace.RData")
@@ -152,7 +152,7 @@ theme_gtsummary_journal(journal = c("nejm"), set_theme = TRUE)
 table1 <-
   tbl_summary(demos_t,by = Gender) %>%
   bold_labels() %>%
-  #modify_caption("**Table 1. Participant Characteristics**") %>%
+  modify_caption("**Table 1. Participant Characteristics**") %>%
   as_gt() %>%
   tab_source_note(md("Data presented as Median (IQR), or n (%)")) %>%
   tab_row_group(
@@ -361,7 +361,7 @@ stage_mu_hr_avg_female4 <- unlist(stage_mu_hr_avg_female3)
 
 #create plot
 #presave the plot first
-pdf("fig_hr_avg.pdf",width = 12, height = 8, pointsize = 12)
+pdf("supp_fig1.pdf",width = 12, height = 8, pointsize = 12)
 #create multi panel plot of raw data with overlayed posterior predictions
 par(mfrow = c(1, 2))
 
@@ -490,7 +490,7 @@ stage_mu_hrm_avg_female4 <- unlist(stage_mu_hrm_avg_female3)
 
 #create plot
 #presave the plot first
-pdf('fig_hr_max.pdf',width = 12, height = 8, pointsize = 12)
+pdf('supp_fig2.pdf',width = 12, height = 8, pointsize = 12)
 #create multi panel plot of raw data with overlayed posterior predictions
 par(mfrow = c(1, 2))
 
@@ -565,8 +565,6 @@ dat_symp_prior <- list(N = length(symp_df$id),
 
 #check
 str(dat_symp_prior)
-
-##Symptoms##
 
 ##Symptoms##
 
@@ -655,7 +653,7 @@ by(symp_df$sx_severity[symp_df$gender==2], symp_df$stage[symp_df$gender==2], mea
 
 #create plot
 #presave the plot first
-pdf("fig_sx.pdf",width = 12, height = 8, pointsize = 12)
+pdf("supp_fig3.pdf",width = 12, height = 8, pointsize = 12)
 #create multi panel plot of raw data with overlayed posterior predictions
 par(mfrow = c(1, 2))
 
@@ -891,9 +889,8 @@ fig2 <- plot_grid(fig_hr_avg, fig_hr_max, fig_symp, ncol = 3, align = 'h',
                   label_y = c(0.99, 0.99, 0.99))
 ggsave(fig2, file = 'fig2.jpg', dpi = 600, width = 8, height = 4)
 
-##########Supplementary Tables######
 
-#Supplementary Table 1
+######Table 2###########
 
 #Need to calculate sum of HVLT
 data$sum_hvlt <- data$num_words_hvlt_trial1+data$num_words_hvlt_trial2+data$num_words_hvlt_trial3
@@ -901,17 +898,17 @@ data$sum_hvlt <- data$num_words_hvlt_trial1+data$num_words_hvlt_trial2+data$num_
 #Only taking performance columns
 colnames(data)
 raw_met_perf_values <- data[c(5,202,128,124,120,142,138,134,159,158,154,153,149,
-                                148,164,169,174,176)]
+                              148,164,169,174,176)]
 colnames(raw_met_perf_values)
 colnames(raw_met_perf_values) <- c("Gender","HVLT (sum of three trials /36)","20 Hip Hinges (completion time [seconds])",
-                                     "20 Lunges (completion time [seconds])","20 Squats (completion time [seconds])",
-                                     "10 Hip Hinges (completion time [seconds])","10 Lunges (completion time [seconds])",
-                                     "10 Squats (completion time [seconds])","20 Hip Hinges + COWAT (completion time [seconds])",
-                                     "COWAT – Hip Hinges (number of words)","20 Lunges + COWAT (completion time [seconds])",
-                                     "COWAT – Lunges (number of words)","20 Squats + COWAT (completion time [seconds])",
-                                     "COWAT – Squats (number of words)","Step Down + Lateral Jump (number of errors /12)",
-                                     "Jump-Overs 1 (number of jump-overs in 20 seconds)","Jump-Overs 2 (number of jump-overs in 20 seconds)",
-                                     "Delayed HVLT (/12)")
+    "20 Lunges (completion time [seconds])","20 Squats (completion time [seconds])",
+    "10 Hip Hinges (completion time [seconds])","10 Lunges (completion time [seconds])",
+     "10 Squats (completion time [seconds])","20 Hip Hinges + COWAT (completion time [seconds])",
+     "COWAT – Hip Hinges (number of words)","20 Lunges + COWAT (completion time [seconds])",
+    "COWAT – Lunges (number of words)","20 Squats + COWAT (completion time [seconds])",
+     "COWAT – Squats (number of words)","Step Down + Lateral Jump (number of errors /12)",
+     "Jump-Overs 1 (number of jump-overs in 20 seconds)","Jump-Overs 2 (number of jump-overs in 20 seconds)",
+      "Delayed HVLT (/12)")
 raw_met_perf_values$Gender <- ifelse(raw_met_perf_values$Gender == 1,"Female","Male")
 colnames(raw_met_perf_values)
 raw_met_perf_values[c(2,10,12,14:18)] <- sapply(raw_met_perf_values[c(2,10,12,14:18)],as.numeric)
@@ -920,31 +917,31 @@ theme_gtsummary_compact()
 reset_gtsummary_theme()
 theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 
-sup_table1 <- raw_met_perf_values[c("Gender","HVLT (sum of three trials /36)","20 Hip Hinges (completion time [seconds])",
-      "20 Lunges (completion time [seconds])","20 Squats (completion time [seconds])",
-      "10 Hip Hinges (completion time [seconds])","10 Lunges (completion time [seconds])",
-      "10 Squats (completion time [seconds])","20 Hip Hinges + COWAT (completion time [seconds])",
-      "COWAT – Hip Hinges (number of words)","20 Lunges + COWAT (completion time [seconds])",
-      "COWAT – Lunges (number of words)","20 Squats + COWAT (completion time [seconds])",
+table2 <- raw_met_perf_values[c("Gender","HVLT (sum of three trials /36)","20 Hip Hinges (completion time [seconds])",
+    "20 Lunges (completion time [seconds])","20 Squats (completion time [seconds])",
+    "10 Hip Hinges (completion time [seconds])","10 Lunges (completion time [seconds])",
+    "10 Squats (completion time [seconds])","20 Hip Hinges + COWAT (completion time [seconds])",
+     "COWAT – Hip Hinges (number of words)","20 Lunges + COWAT (completion time [seconds])",
+     "COWAT – Lunges (number of words)","20 Squats + COWAT (completion time [seconds])",
       "COWAT – Squats (number of words)","Step Down + Lateral Jump (number of errors /12)",
-      "Jump-Overs 1 (number of jump-overs in 20 seconds)","Jump-Overs 2 (number of jump-overs in 20 seconds)",
+     "Jump-Overs 1 (number of jump-overs in 20 seconds)","Jump-Overs 2 (number of jump-overs in 20 seconds)",
       "Delayed HVLT (/12)")] %>% 
   tbl_summary(by=Gender,digits=list('HVLT (sum of three trials /36)' ~ 0,'20 Hip Hinges (completion time [seconds])' ~ 1,
-      '20 Lunges (completion time [seconds])' ~ 1, '20 Squats (completion time [seconds])' ~ 1,
+     '20 Lunges (completion time [seconds])' ~ 1, '20 Squats (completion time [seconds])' ~ 1,
       '10 Hip Hinges (completion time [seconds])' ~ 1, '10 Lunges (completion time [seconds])' ~ 1,
-      '10 Squats (completion time [seconds])' ~ 1,'20 Hip Hinges + COWAT (completion time [seconds])' ~ 1,
+     '10 Squats (completion time [seconds])' ~ 1,'20 Hip Hinges + COWAT (completion time [seconds])' ~ 1,
       'COWAT – Hip Hinges (number of words)' ~ 0,'20 Lunges + COWAT (completion time [seconds])' ~ 1,
-      'COWAT – Lunges (number of words)' ~ 0,'20 Squats + COWAT (completion time [seconds])' ~ 1, 
+       'COWAT – Lunges (number of words)' ~ 0,'20 Squats + COWAT (completion time [seconds])' ~ 1, 
       'COWAT – Squats (number of words)' ~ 0,'Step Down + Lateral Jump (number of errors /12)' ~ 0,
       'Jump-Overs 1 (number of jump-overs in 20 seconds)' ~ 0, 'Jump-Overs 2 (number of jump-overs in 20 seconds)' ~ 0,
       'Delayed HVLT (/12)' ~ 0),
-      type = list('HVLT (sum of three trials /36)'~ "continuous",
-      'COWAT – Hip Hinges (number of words)'~ "continuous",'COWAT – Lunges (number of words)'~ "continuous",
-      'COWAT – Squats (number of words)' ~ "continuous",'Step Down + Lateral Jump (number of errors /12)'~ "continuous",
-      'Jump-Overs 1 (number of jump-overs in 20 seconds)' ~ "continuous",'Jump-Overs 2 (number of jump-overs in 20 seconds)' ~ "continuous",
-      'Delayed HVLT (/12)' ~ "continuous")) %>%
+    type = list('HVLT (sum of three trials /36)'~ "continuous",
+       'COWAT – Hip Hinges (number of words)'~ "continuous",'COWAT – Lunges (number of words)'~ "continuous",
+        'COWAT – Squats (number of words)' ~ "continuous",'Step Down + Lateral Jump (number of errors /12)'~ "continuous",
+         'Jump-Overs 1 (number of jump-overs in 20 seconds)' ~ "continuous",'Jump-Overs 2 (number of jump-overs in 20 seconds)' ~ "continuous",
+         'Delayed HVLT (/12)' ~ "continuous")) %>%
   add_overall() %>%
-  modify_caption("**Supplementary Table 1. Raw values of MET performance metrics.**") %>%
+  modify_caption("**Table 2. Raw values of MET performance metrics.**") %>%
   as_gt() %>%
   tab_row_group(
     label = "Pre-MET", id = "Pre-MET",
@@ -968,10 +965,12 @@ sup_table1 <- raw_met_perf_values[c("Gender","HVLT (sum of three trials /36)","2
     locations = cells_row_groups(groups= c("Pre-MET","MET - Stage 1","MET - Stage 2","MET - Stage 3",
                                            "MET - Stage 4"))) %>%
   gt::tab_options(table.font.names = "Times New Roman")%>%
-  tab_source_note(md("MET, Multimodal Exertional Test; HVLT, Hopkins Verbal Learning Test; COWAT, Controlled Oral Word Association Test")) %>%
-  gt::gtsave(filename = "sup_t1.html")
+  tab_source_note(md("Data presented as Median (IQR). MET, Multimodal Exertional Test; HVLT, Hopkins Verbal Learning Test; COWAT, Controlled Oral Word Association Test")) %>%
+  gt::gtsave(filename = "table2.html")
 
-#Supplementary Table 2
+##########Supplementary Tables######
+
+#Supplementary Table 1
 colnames(complete_df2)
 ave_hr_raw <- complete_df2[c(24,4,8,10,12,14)]
 colnames(ave_hr_raw)
@@ -982,17 +981,18 @@ theme_gtsummary_compact()
 reset_gtsummary_theme()
 theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 
-sup_table2 <- ave_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4")] %>% 
+sup_table1 <- ave_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4")] %>% 
   tbl_summary(by=Gender,digits=list("Pre" ~ 1,"Stage 1" ~ 1,"Stage 2" ~ 1,"Stage 3" ~ 1,"Stage 4" ~ 1),
               type = list("Pre"  ~ "continuous","Stage 1" ~ "continuous",
                           "Stage 2"  ~ "continuous","Stage 3"  ~ "continuous","Stage 4" ~ "continuous")) %>%
   add_overall() %>%
-  modify_caption("**Supplementary Table 2. Participants’ raw average heart rates.**") %>%
+  modify_caption("**Supplementary Table 1. Participants’ raw average heart rates.**") %>%
+  modify_footnote(all_stat_cols() ~"Data presented as Median (IQR).") %>%
   as_gt() %>%
   gt::tab_options(table.font.names = "Times New Roman") %>%
-  gt::gtsave(filename = "sup_t2.html")
+  gt::gtsave(filename = "sup_t1.html")
 
-#Supplementary Table 3
+#Supplementary Table 2
 colnames(complete_df2)
 max_hr_raw <- complete_df2[c(24,5,9,11,13,15)]
 colnames(max_hr_raw)
@@ -1003,34 +1003,83 @@ theme_gtsummary_compact()
 reset_gtsummary_theme()
 theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 
-sup_table3 <- max_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4")] %>% 
+sup_table2 <- max_hr_raw[c("Gender","Pre","Stage 1","Stage 2","Stage 3","Stage 4")] %>% 
   tbl_summary(by=Gender,digits=list("Pre" ~ 1,"Stage 1" ~ 1,"Stage 2" ~ 1,"Stage 3" ~ 1,"Stage 4" ~ 1),
               type = list("Pre"  ~ "continuous","Stage 1" ~ "continuous",
                           "Stage 2"  ~ "continuous","Stage 3"  ~ "continuous","Stage 4" ~ "continuous")) %>%
   add_overall() %>%
-  modify_caption("**Supplementary Table 3. Participants’ raw maximum heart rates.**") %>%
+  modify_caption("**Supplementary Table 2. Participants’ raw maximum heart rates.**") %>%
+  modify_footnote(all_stat_cols() ~"Data presented as Median (IQR).") %>%
   as_gt() %>%
   gt::tab_options(table.font.names = "Times New Roman") %>%
+  gt::gtsave(filename = "sup_t2.html")
+
+#Supplementary Table 3
+theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
+colnames(max_hr_raw)
+max_hr_raw_all <- max_hr_raw[c(3:6)]
+max_hr_raw_females <- max_hr_raw[max_hr_raw$Gender == "Female",c(3:6)]
+max_hr_raw_males <- max_hr_raw[max_hr_raw$Gender == "Male",c(3:6)]
+pred_maxhr_all <- as.data.frame(apply(max_hr_raw_all,2,function(x) {((x/200)*100)}))
+pred_maxhr_overall_tbl <- pred_maxhr_all %>% select("Stage 1","Stage 2","Stage 3",
+                                                       "Stage 4") %>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**All**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+pred_maxhr_overall_tbl
+
+pred_maxhr_f_maxhr <- as.data.frame(apply(max_hr_raw_females,2,function(x) {((x/200)*100)}))
+pred_maxhr_females_tbl <- pred_maxhr_f_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                   "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Females**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+pred_maxhr_females_tbl
+
+pred_maxhr_m_maxhr <- as.data.frame(apply(max_hr_raw_males,2,function(x) {((x/200)*100)}))
+pred_maxhr_males_tbl <- pred_maxhr_m_maxhr %>% select("Stage 1","Stage 2","Stage 3",
+                                                 "Stage 4")%>% 
+  tbl_summary(type=everything() ~ "continuous",
+              digits = all_continuous() ~ 1) %>%
+  modify_header(label ~ "**Stage**",stat_0 ~ "**Males**") %>%
+  modify_caption("") %>%
+  modify_footnote(everything() ~ NA) 
+pred_maxhr_males_tbl
+
+#Now going to stack them to have them under the same table
+supp_t3_stacked1 <- tbl_merge(list(pred_maxhr_overall_tbl,pred_maxhr_females_tbl,pred_maxhr_males_tbl), 
+                              tab_spanner=c("**All**","**Females**","**Males**"))
+supp_t3_stacked1 <- tbl_merge(list(supp_t3_stacked1),
+                              tab_spanner=c("**Formula = 220 - age**"))
+supp_t3_stacked <- supp_t3_stacked1 %>% 
+  modify_caption("**Supplementary Table 3. Participants' percentages of age-predicted maximum HR**") %>%
+  modify_footnote(all_stat_cols() ~'Data presented as percentages of Median (IQR).') %>%
+  as_gt() %>%
+  gt::tab_options(table.font.names = "Times New Roman")%>%
   gt::gtsave(filename = "sup_t3.html")
 
 #Supplementary Table 4
+reset_gtsummary_theme()
+theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 #creating male and female dataframes for table of estimates
 male_hr_avg <- as.data.frame(unlist(stage_mu_hr_avg_male2))
 male_hrm_avg <- as.data.frame(unlist(stage_mu_hrm_avg_male2))
 male_symp_avg <- as.data.frame(unlist(stage_mu_sx_male2))
 male_ests <- cbind.data.frame(male_hr_avg,male_hrm_avg,male_symp_avg)
-colnames(male_ests) <- c("HR Avg (BPM)","HR Max (BPM)","Symptom Severity")
+colnames(male_ests) <- c("HR Avg (bpm)","HR Max (bpm)","Symptom Severity")
 male_ests$stage <- rep(c("Pre","Stage 1","Stage 2", "Stage 3", "Stage 4"), each = 6000)
 
 female_hr_avg <- as.data.frame(unlist(stage_mu_hr_avg_female2))
 female_hrm_avg <- as.data.frame(unlist(stage_mu_hrm_avg_female2))
 female_symp_avg <- as.data.frame(unlist(stage_mu_sx_female2))
 female_ests <- cbind.data.frame(female_hr_avg,female_hrm_avg,female_symp_avg)
-colnames(female_ests) <- c("HR Avg (BPM)","HR Max (BPM)","Symptom Severity")
+colnames(female_ests) <- c("HR Avg (bpm)","HR Max (bpm)","Symptom Severity")
 female_ests$stage <- rep(c("Pre","Stage 1","Stage 2", "Stage 3", "Stage 4"), each = 6000)
 
-#use fig_df_long and gt_summary to create table
-theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 tbl_male <- tbl_summary(male_ests, by = stage,
                         digits = all_continuous() ~1,
                         statistic = all_continuous()~c("{mean} ({HDILow},{HDIHigh})")) 
@@ -1040,14 +1089,16 @@ tbl_female <- tbl_summary(female_ests, by = stage,
                           statistic = all_continuous()~c("{mean} ({HDILow},{HDIHigh})")) 
 
 #Combine
+theme_gtsummary_compact()
+reset_gtsummary_theme()
 theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
 tbl_ests <- tbl_stack(list(tbl_male,tbl_female),
                       group_header = c("Males", "Females")) %>%
   modify_caption("**Supplementary Table 4.** Posterior estimates")%>%
   modify_header(label ~ '**Measure**')%>%
-  modify_footnote(all_stat_cols() ~ "Mean (90% Compatibility Interval)")%>%
+  modify_footnote(all_stat_cols() ~ "Data presented as Mean (90% Compatibility Interval) from 6000 posterior draws.")%>%
   as_gt()%>%
-  tab_source_note(source_note = md('HR = Heart Rate'))%>%
+  tab_source_note(source_note = md('HR, Heart Rate; Avg, Average; bpm, beats per minute; Max, Maximum'))%>%
   gt::gtsave(filename = "sup_t4.html")
 
 #this table was modified slightly for publication to bold the male/female headings
@@ -1080,15 +1131,19 @@ precis(contrasts_df[-c(1,2)][contrasts_df$Sex=='Female',],2)
 
 #create table
 #male
+theme_gtsummary_compact()
+reset_gtsummary_theme()
+theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
+
 tbl_contrasts <- tbl_summary(contrasts_df[-c(1)], by = Variable,missing = 'no',
                              digits = all_continuous() ~1,
                              statistic = all_continuous()~c("{mean} ({HDILow},{HDIHigh})"))%>%
   modify_caption("**Supplementary Table 5.** Posterior contrast estimates")%>%
-  modify_footnote(all_stat_cols() ~ "Mean (90% Compatibility Interval) from 6000 posterior draws")%>%
+  modify_footnote(all_stat_cols() ~ "Data presented as Mean (90% Compatibility Interval) from 12,000 posterior draws.")%>%
   modify_header(label ~ "**Measure**")%>%
   bold_labels()%>%
   as_gt()%>%
-  tab_source_note(source_note = md('HR = Heart Rate'))%>%
+  tab_source_note(source_note = md('HR, Heart Rate; Avg, Average; bpm, beats per minute; Max, Maximum'))%>%
   gt::gtsave(filename = "sup_t5.html")
 #again, need to modify slightly for publication (See above under tbl_ests)
 
@@ -1134,6 +1189,7 @@ sup_table6 <- sx_raw_values[c("Gender","Symptom Severity Score","20 Hip Hinges",
                           'Jump-Overs 2' ~ "continuous")) %>%
   add_overall() %>%
   modify_caption("**Supplementary Table 6. Participants' raw differences from initial symptom severity score.**") %>%
+  modify_footnote(all_stat_cols() ~ "Data presented as Median (IQR).")%>%
   as_gt() %>%
   tab_row_group(
     label = "Initial", id = "Initial",
@@ -1157,7 +1213,7 @@ sup_table6 <- sx_raw_values[c("Gender","Symptom Severity Score","20 Hip Hinges",
     locations = cells_row_groups(groups= c("Initial","MET - Stage 1","MET - Stage 2","MET - Stage 3",
                                            "MET - Stage 4"))) %>%
   gt::tab_options(table.font.names = "Times New Roman")%>%
-  tab_source_note(md("MET, Multimodal Exertional Test; COWAT, Controlled Oral Word Association Task")) %>%
+  tab_source_note(source_note = md('MET, Multimodal Exertional Test; COWAT, Controlled Oral Word Association Task'))%>%
   gt::gtsave(filename = "sup_t6.html")
 
 ######For Results####
@@ -1198,85 +1254,6 @@ mean(sex_contrasts_df$Pre[sex_contrasts_df$Variable=='Symp. Severity']<0)
 
 
 
-######Adding in Predicted Max HR Table with Raw Max HR#######
-theme_gtsummary_journal(journal = c("nejm"),set_theme = TRUE)
-max_hr_raw_all <- max_hr_raw[c(3:6)]
-max_hr_raw_females <- max_hr_raw[max_hr_raw$Gender == "Female",c(3:6)]
-max_hr_raw_males <- max_hr_raw[max_hr_raw$Gender == "Male",c(3:6)]
-frml1_all_maxhr <- as.data.frame(apply(max_hr_raw_all,2,function(x) {((x/200)*100)}))
-maxhr_overall_frmla1_tbl <- frml1_all_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                       "Stage 4") %>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**All**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_overall_frmla1_tbl
 
-frml1_f_maxhr <- as.data.frame(apply(max_hr_raw_females,2,function(x) {((x/200)*100)}))
-maxhr_females_frm1_tbl <- frml1_f_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                   "Stage 4")%>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**Females**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_females_frm1_tbl
 
-frml1_m_maxhr <- as.data.frame(apply(max_hr_raw_males,2,function(x) {((x/200)*100)}))
-maxhr_males_frm1_tbl <- frml1_m_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                 "Stage 4")%>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**Males**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_males_frm1_tbl
 
-frml2_all_maxhr <- as.data.frame(apply(max_hr_raw_all,2,function(x) {((x/198.2)*100)}))
-maxhr_overall_frmla2_tbl <- frml2_all_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                       "Stage 4") %>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**All**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_overall_frmla2_tbl
-
-frml2_f_maxhr <- as.data.frame(apply(max_hr_raw_females,2,function(x) {((x/198.2)*100)}))
-maxhr_females_frm2_tbl <- frml2_f_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                   "Stage 4")%>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**Females**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_females_frm2_tbl
-
-frml2_m_maxhr <- as.data.frame(apply(max_hr_raw_males,2,function(x) {((x/198.2)*100)}))
-maxhr_males_frm2_tbl <- frml2_m_maxhr %>% select("Stage 1","Stage 2","Stage 3",
-                                                 "Stage 4")%>% 
-  tbl_summary(type=everything() ~ "continuous",
-              digits = all_continuous() ~ 1) %>%
-  modify_header(label ~ "**Stage**",stat_0 ~ "**Males**") %>%
-  modify_caption("") %>%
-  modify_footnote(everything() ~ NA) 
-maxhr_males_frm2_tbl
-
-supp_t3_stacked1 <- tbl_merge(list(maxhr_overall_frmla1_tbl,maxhr_females_frm1_tbl,maxhr_males_frm1_tbl), 
-                         tab_spanner=c("**All**","**Females**","**Males**"))
-#supp_t3_stacked2 <- tbl_merge(list(maxhr_overall_frmla2_tbl,maxhr_females_frm2_tbl,maxhr_males_frm2_tbl), 
- #                        tab_spanner=c("**All**","**Females**","**Males**"))
-#supp_t3_stacked <- tbl_merge(list(supp_t3_stacked1,supp_t3_stacked2),
- #                       tab_spanner=c("**Formula 1 = 220-age**","**Formula 2 = 211-age*0.64**"))
-supp_t3_stacked1 <- tbl_merge(list(supp_t3_stacked1),
-                             tab_spanner=c("**Formula = 220 - age**"))
-supp_t3_stacked <- supp_t3_stacked1 %>% 
-  modify_caption("**Supplementary Table 3. Participants' percentages of age-predicted maximum HR**") %>%
-  as_gt() 
-supp_t3_stacked <- supp_t3_stacked %>%
-  tab_source_note(md('Data presented as percentages of Median (IQR).')) %>%
-  gt::tab_options(table.font.names = "Times New Roman")%>%
-  gt::gtsave(filename = "supplementary_table3.html")
-
-##IF KEEPING - NEED TO CHANGE NUMBERING IN GITHUB
