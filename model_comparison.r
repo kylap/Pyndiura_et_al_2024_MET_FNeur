@@ -12,7 +12,7 @@
 ### The following code requires that you have the hr_df, symp_df and 'dat' STAN 
 ### data lists in your environment. ###
 
-##HR##
+#######HR models#########
 
 ##complete pooling
 mod_hr_cp <-
@@ -161,13 +161,14 @@ rethinking::compare(m_hr_cp, m_hr_cp_part, m_hr_cp_part_sex, m_hr_cp_sex,
 ###Partially pooled model with all variables but no sex interaction###
 ##this is the model used in the manuscript for hr avg##
 
+#Need hr_df data from MET_pilot_main.R code
+
 #first extract the data from the pooled model
 post_hr_avg <- as.data.frame(extract.samples(m_hr_pp_part_sex))
 #vectorize the median of the mu values from post_pp
 post_mu_hr_avg <- post_hr_avg[grepl("mu.", colnames(post_hr_avg))]
 #remove first two values, which are the intercepts
-post_mu_hr_avg2 <-
-  post_mu_hr_avg[-c(1, 2)]
+post_mu_hr_avg2 <- post_mu_hr_avg[-c(1, 2)]
 #recover raw values from modified z-scores
 post_mu_hr_avg3 <- post_mu_hr_avg2 * mad(hr_df$hr, na.rm = TRUE) +
   median(hr_df$hr, na.rm = TRUE)
@@ -269,9 +270,9 @@ dev.off()
 post_pp <- as.data.frame(extract.samples(m_hr_pp_part_sex_int))
 #vectorize the median of the mu values from post_pp
 post_mu_pp <- post_pp[grepl("mu.", colnames(post_pp))]
-#remove first two values, which are the intercepts
+#remove first three values, which are the intercepts
 post_mu_pp2 <-
-  post_mu_pp[-c(1, 2)] 
+  post_mu_pp[-c(1:3)] 
 #recover raw values from modified z-scores
 post_mu_pp3 <- post_mu_pp2 * mad(hr_df$hr, na.rm = TRUE) +
      median(hr_df$hr, na.rm = TRUE)
@@ -290,11 +291,11 @@ hr_df$mu <- post_mu_pp4
 #using precis() to identify where they are in the dataframe
 m_hr_pp_part_sex_int
 precis(post_pp)
-
+colnames(post_pp)
 #create separate dataframes for the function below
-post_pp_stage <- post_pp[c(2:6)]
-post_pp_stage_sex_male <- post_pp[c(34:38)]
-post_pp_stage_sex_female <- post_pp[c(39:43)]
+post_pp_stage <- post_pp[c(46:50)]
+post_pp_stage_sex_male <- post_pp[c(36:40)]
+post_pp_stage_sex_female <- post_pp[c(41:45)]
 
 #create a function that adds up the correct values for each stage
 #males
@@ -395,6 +396,7 @@ post_mu_cp3 <- apply(post_mu_cp2, 2, median)
 #add this vector to the hr_df
 hr_df$mu_cp <- post_mu_cp3
 
+colnames(post_cp)
 #creating a mean stage level values vector by sex
 #first extract the data from the pooled model for stage
 post_cp_stage <- post_cp[c(2:6)]
@@ -1850,7 +1852,7 @@ post_sx_stage <- post_sx[c(79:83)]
 #males
 #there is literally no variance at the task level,
 #so we can take the population coefficient for task
-stage_mu_sx_male <
+stage_mu_sx_male <-
   sapply(1:5, function(x) post_sx_stage[x] + post_sx$mu_task +
          post_sx$b_sex.1)
 #recover values        
@@ -1866,7 +1868,7 @@ stage_mu_sx_male4 <- unlist(stage_mu_sx_male3)
 
 #females
 stage_mu_sx_female <-
-  sapply(1:5, function(x) post_sx_stage[x] + post_sx$mu_task
+  sapply(1:5, function(x) post_sx_stage[x] + post_sx$mu_task + 
         post_sx$b_sex.2)
 #recover values        
 stage_mu_sx_female2 <-
